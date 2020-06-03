@@ -9,8 +9,6 @@ const useForm = (initialState, validate, next) => {
    useEffect(() => {
        if (isSubmitting) {
            const isErrors = Object.keys(errors).length !== 0
-           console.log(isErrors);
-           console.log(errors);
            if (isErrors) {
                setisSubmitting(false)
            } else {

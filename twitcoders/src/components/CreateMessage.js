@@ -9,7 +9,7 @@ const INITIAL_STATE = {
 }
 
 const CreateMessage = () => {
-    const { user } = useContext(FirebaseContext)
+    const { user, firebase } = useContext(FirebaseContext)
     const handleCreateMessage = () => {
         const { message } = values
         const newMessage = {
@@ -22,7 +22,8 @@ const CreateMessage = () => {
             createAt: Date.now(),
             photo: user.photoURL
         }
-        console.log(newMessage);
+        
+        firebase.db.collection('messages').add(newMessage)
     }
 
     const { handleSubmit, handleKeyDown, handleChange, values, errors } = useForm(

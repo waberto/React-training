@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { FirebaseContext } from '../firebase'
 import {
     FiHeart,
@@ -11,25 +11,56 @@ import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale'
 import IconContainer from './IconContainer';
 
-const Message = () => {
-    const { user } = useContext(FirebaseContext)
+const Message = ({ message }) => {
+    const { user, firebase } = useContext(FirebaseContext)
+    const [isLike, setIsLike] = useState(false)
+    
+
+    useEffect(() => {
+        if (user) {
+            const isLike = message.likes.some(like => like.likeBy.id === user.id)
+            setIsLike(isLike)
+        }
+    }, [])
+
+    const handleLike = () => {
+        setIsLike(prevIsLike => !prevIsLike)
+        const likeRef = firebase.db.collection('messages').doc(message.id)
+        
+        if (!isLike) {
+            const like = { likeBy: { id: user.uid, name: user.displayName} }
+            const updatedLikes = [...message.likes, like]
+            likeRef.update({ likes: updatedLikes })
+        } else {
+            const updatedLikes = message.likes.filter(
+                like => like.likeBy.id !== user.uid
+            )
+                likeRef.update({ likes: updatedLikes })
+        }
+    }
+
+    const handleDeleteMessage = () => {
+        const messageRef = firebase.db.collection('messages').doc(message.id)
+        messageRef.delete()
+    }
+
+    const isOwner = user && user.uid === message.postedBy.id
+
     return (
         <div className='message-form'>
             <div>
-                <img src="https://pbs.twimg.com/profile_images/992786435970338817/go9joLCV_400x400.jpg"
+                <img
+                    src={message.photo}
                     alt="Profil"
                     className="profil-picture"
                 />
             </div>
             <div className='message'>
                 <header>
-                    <h3>Waberi Houssein</h3>
-                    <span>· {formatDistanceToNow(1589913648817, { locale: fr })}</span>
+                    <h3>{message.postedBy.name}</h3>
+                    <span>· {formatDistanceToNow(message.createAt, { locale: fr })}</span>
                 </header>
-                <p>
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit,
-                    sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-                </p>
+                <p>{message.message}</p>
                 {user && (
                     <footer>
                         <IconContainer color='blue'>
@@ -38,15 +69,22 @@ const Message = () => {
                         <IconContainer color='green'>
                             <FiRefreshCw />
                         </IconContainer>
-                        <IconContainer color='red' count='5'>
+                        <IconContainer
+                            onClick={handleLike}
+                            color='red'
+                            count={message.likes.length}
+                            isLike={isLike}
+                        >
                             <FiHeart />
                         </IconContainer>
                         <IconContainer color='blue'>
                             <FiUpload />
                         </IconContainer>
-                        <IconContainer color='red'>
-                            <FiX />
-                        </IconContainer>
+                        {isOwner && (
+                            <IconContainer onClick={handleDeleteMessage} color='red'>
+                                <FiX />
+                            </IconContainer>
+                        )}
                     </footer>
                 )}
             </div>

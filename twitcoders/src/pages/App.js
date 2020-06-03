@@ -7,6 +7,7 @@ import CreateMessage from './../components/CreateMessage';
 
 import firebase, { FirebaseContext } from './../firebase';
 import useAuth from './../hooks/useAuth';
+import MessageList from './../components/MessageList';
 
 const App = () => {
   const user = useAuth()
@@ -16,9 +17,7 @@ const App = () => {
       <div className='app'>
         <Header />
         <CreateMessage />
-        <Message />
-        <Message />
-        <Message />
+        <MessageList />
       </div>
     </FirebaseContext.Provider>
   )
